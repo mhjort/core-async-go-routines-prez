@@ -37,6 +37,33 @@
 				<section>Designed to run on one physical machine</section>
 				<section>Simple high level API</section>
 				<section>Efficient memory usage (avoid system threads)</section>
+        <section>
+          <h2>Goroutines example</h2>
+          <pre class="golang"><code data-trim data-noescape>
+c := make(chan string)
+go func() { c <- "ping" }()
+msg := <-c
+fmt.Println(msg)
+          </code></pre>
+        </section>
+        <section>
+          <h2>Goroutines design</h2>
+          <p>Own scheduler for goroutines with dynamic (initially small) stack size</p>
+        </section>
+        <section>
+          <h2>core.async example</h2>
+          <pre class="clojure"><code data-trim>
+(let [c (chan)]
+  (go (&lt;! c "ping"))
+  (>!! c)
+  (println c))
+          </code></pre>
+        </section>
+        <section>
+          <h2>core.async design</h2>
+          <p>Fixed size JVM thread pool and magical macro for transforming your code into a statemachine</p>
+        </section>
+        <section>Pitfalls</section>
 			</div>
 		</div>
 
