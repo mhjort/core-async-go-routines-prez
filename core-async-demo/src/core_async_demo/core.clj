@@ -29,16 +29,33 @@
 
 (async/close! channel) ;rounds.log grows forever
 
+(def input (chan))
+(def output (chan))
+
+(defn complex-doubler [input-channel output-channel]
+  (go
+    (let [value (<! input-channel)]
+      (>! output-channel (* 2 value)))))
+
+(defn refactored-doubler [input-channel output-channel]
+  (let [do-the-doubling #(>! output-channel (* 2 %))]
+  (go
+    (let [value (<! input-channel)]
+      (do-the-doubling value)))))
+
+(refactored-doubler input output)
+
+(go (>! input 2)) ;Assert failed: >! used not in (go ...) block
+
+
 (defn start-doubler [input-channel output-channel]
   (go
     (let [value (<! input-channel)]
       (>! output-channel (* 2 value)))))
 
-(def input (chan))
-(def output (chan))
 
-(dotimes [_ 1025]
-  (start-doubler input output)) ;Assert failed: No more than 1024 pending
+;(dotimes [_ 1025]
+;  (start-doubler input output)) ;Assert failed: No more than 1024 pending
 
-(go (>! input 3))
-(<!! output) ;6
+;(go (>! input 3))
+;(<!! output) ;6

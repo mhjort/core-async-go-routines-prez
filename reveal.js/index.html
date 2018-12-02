@@ -82,7 +82,21 @@ fmt.Println(msg)
         </section>
         <section>
           <h2>core.async refactoring</h2>
-          <p>Go macro is not refactoring friendly</p>
+          <pre class="clojure"><code data-trim>
+(defn complex-doubler [input-channel output-channel]
+  (go
+    (let [value (&lt;! input-channel)]
+      (&gt;! output-channel (* 2 value))))) ;extract function?
+
+(defn refactored-doubler [input-channel output-channel]
+  (let [do-the-doubling #(&gt;! output-channel (* 2 %))]
+    (go
+      (do-the-doubling (&lt;! input-channel)))))
+
+(refactored-doubler in out)
+
+(go (&gt;! in 2)) ;Assert failed: &gt;! used not in (go ...) block
+        </code></pre>
         </section>
         <section>
           <h2>core.async error handling</h2>
