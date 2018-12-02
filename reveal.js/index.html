@@ -33,10 +33,12 @@
           <small><a href="http://tomorrow.fi" data-preview-link>Tomorrow Tech</a></small>
           </p>
         </section>
-				<section>Tools for asynchronous programming based on the ideas of CSP</section>
-				<section>Designed to run on one physical machine</section>
-				<section>Simple high level API</section>
-				<section>Efficient memory usage (avoid system threads)</section>
+				<section>
+          <h2>Simple tools with high performance for asynchronous programming in one process</h2>
+        </section>
+				<section>
+          <h2>Concurrently executing functions that communicate via channels</h2>
+        </section>
         <section>
           <h2>Goroutines example</h2>
           <pre class="golang"><code data-trim data-noescape>
@@ -54,33 +56,92 @@ fmt.Println(msg)
           <h2>core.async example</h2>
           <pre class="clojure"><code data-trim>
 (let [c (chan)]
-  (go (&lt;! c "ping"))
-  (>!! c)
+  (go (&gt;! c "ping"))
+  (&lt;!! c)
   (println c))
           </code></pre>
         </section>
         <section>
           <h2>core.async design</h2>
-          <p>Fixed size JVM thread pool and magical macro for transforming your code into a statemachine</p>
+          <p>Fixed size JVM thread pool and magical macro for transforming your code into a state machine</p>
         </section>
-        <section>Pitfalls</section>
+        <section>
+          <h1>Pitfalls</h1>
+        </section>
         <section>
           <h2>Goroutines</h2>
           <p>Mutable data :(</p>
+          <p>Mutable data :(</p>
+          <p>Mutable data :(</p>
         </section>
         <section>
-          <h2>core.async</h2>
-          <p>Go macro</p>
-          <ul>
-            <li>Hard to debug problems</li>
-            <li>Not refactoring friendly</li>
-          </ul>
+          <h2>core.async go macro</h2>
+          <img src="img/let-in-go-block.png"/>
+          <img src="img/compilation-errors-in-go-block.png"/>
+          <img src="img/go-macro-removes-binding.png"/>
+        </section>
+        <section>
+          <h2>core.async refactoring</h2>
+          <p>Go macro is not refactoring friendly</p>
+        </section>
+        <section>
+          <h2>core.async error handling</h2>
+          <pre class="clojure"><code data-trim>
+(defn divide [dividend divisor]
+  (let [c (chan)]
+    (go (&gt;! c (double (/ dividend divisor))))
+    c))
+
+(&lt;!! (divide 5 2)) ;2.5
+
+(&lt;!! (divider 3 0)) ;Blocks forever
+        </code></pre>
+        </section>
+        <section>
+          <h2>core.async loops</h2>
+          <pre class="clojure"><code data-trim>
+(defn launch-logger [input-channel]
+  (go-loop []
+           (spit "demo.log" (&lt;! input-channel) :append true)
+           (spit "rounds.log" "." :append true)
+           (recur)))
+
+(def channel (chan))
+(launch-logger channel)
+(&gt;!! channel "ping")
+
+;demo.log contains "ping and rounds.log contains "."
+
+(async/close! channel) ;rounds.log grows forever
+        </code></pre>
+        </section>
+        <section>
+          <h2>core.async pending puts/takes</h2>
+          <pre class="clojure"><code data-trim>
+(defn start-doubler [input-channel output-channel]
+  (go
+    (let [value (&lt;! input-channel)]
+      (&gt;! output-channel (* 2 value)))))
+
+(def input (chan))
+(def output (chan))
+
+(dotimes [_ 1025] (start-doubler input output))
+;Assert failed: No more than 1024 pending takes
+
+(go (&gt;! input 3))
+(&lt;!! output) ;6
+          </code></pre>
+        </section>
+        <section>
+          <h2>Summary</h2>
+          <p>Goroutines and core.async have some gotchas BUT they are still great tools for async programming when you know what you are doing</p>
         </section>
         <section>
           <h2>Thanks!</h2>
           <img src="img/mhjort.jpg"/>
-          <h5>@mhjort, markus@tomorrow.fi</h5>
-          <h5>Note! Tomorrow Tech is hiring</h5>
+          <p>markus@tomorrow.fi</p>
+          <p>Note! Tomorrow Tech is hiring</p>
         </section>
 			</div>
 		</div>
